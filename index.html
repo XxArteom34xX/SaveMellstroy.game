@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Save Mellstroy</title>
+    
+    <link rel="stylesheet" type="text/css" href="Save Walter White_files/save-walter-white.css">
+    <style>
+        /* Стили для всех обычных фотографий */
+        #first_row img,
+        #second_row img, 
+        #third_row img,
+        #fourth_row img {
+            object-fit: cover;
+            border: 2px solid #333;
+        }
+        
+        /* ПЕРВОЕ ФОТО БОЛЬШЕ */
+        #first_row img {
+            width: 600px;
+            height: 450px;
+        }
+        
+        /* Третья строка (обычный размер) */
+        #third_row img {
+            width: 400px;
+            height: 300px;
+        }
+        
+        /* Вторая строка */
+        #second_row img {
+            width: 250px;
+            height: 188px;
+        }
+        
+        /* Четвертая строка */
+        #fourth_row img {
+            width: 280px;
+            height: 210px;
+        }
+        
+        /* Стили для баннера и кнопки доната */
+        #banner-container img {
+            width: 600px;
+            max-width: 90%;
+            height: auto;
+        }
+        
+        #donate-container img {
+            width: 300px;
+            max-width: 80%;
+            height: auto;
+            cursor: pointer;
+        }
+        
+        /* Центрирование и отступы */
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        li {
+            display: inline-block;
+            margin: 10px;
+            vertical-align: top;
+        }
+        
+        /* Стили для модальных окон */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+        }
+        
+        .modal-content {
+            background-color: #1ba11a;
+            margin: 10% auto;
+            padding: 30px;
+            border: 3px solid #fff54f;
+            width: 400px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .modal h2 {
+            color: #fff54f;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin: 15px 0;
+            text-align: left;
+        }
+        
+        .form-group label {
+            display: block;
+            color: white;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #fff54f;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        
+        .submit-btn {
+            background: #ff4444;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        
+        .submit-btn:hover {
+            background: #cc0000;
+        }
+        
+        .close {
+            color: #fff;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover {
+            color: #fff54f;
+        }
+        
+        /* Админ панель - СКРЫТА ДЛЯ ОБЫЧНЫХ ПОЛЬЗОВАТЕЛЕЙ */
+        #adminPanel {
+            display: none;
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: #333;
+            padding: 10px;
+            border-radius: 5px;
+            z-index: 1001;
+        }
+        
+        #adminBtn {
+            background: #fff54f;
+            color: #000;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        #donationsList {
+            display: none;
+            position: fixed;
+            top: 50px;
+            right: 10px;
+            background: #333;
+            padding: 20px;
+            border-radius: 5px;
+            max-height: 400px;
+            overflow-y: auto;
+            z-index: 1001;
+            color: white;
+            width: 300px;
+        }
+        
+        .donation-item {
+            border-bottom: 1px solid #555;
+            padding: 10px 0;
+            text-align: left;
+        }
+        
+        /* Кнопка для входа в админку */
+        #adminAccessBtn {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: #333;
+            color: #fff54f;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            z-index: 1001;
+        }
+    </style>
+</head>
+<body>
+    <!-- Кнопка для доступа к админке -->
+    <button id="adminAccessBtn" onclick="openAdminLogin()">Админ</button>
+
+    <!-- Админ панель (только после ввода пароля) -->
+    <div id="adminPanel">
+        <button id="adminBtn" onclick="toggleDonationsList()">Показать донаты</button>
+        <div id="donationsList"></div>
+    </div>
+
+    <!-- Модальное окно для входа в админку -->
+    <div id="adminLoginModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeAdminLogin()">&times;</span>
+            <h2>Вход в админ-панель</h2>
+            <form id="adminLoginForm">
+                <div class="form-group">
+                    <label for="adminPassword">Пароль:</label>
+                    <input type="password" id="adminPassword" name="adminPassword" required placeholder="Введите пароль">
+                </div>
+                <button type="submit" class="submit-btn">Войти</button>
+            </form>
+            <p style="color: white; margin-top: 15px; font-size: 12px;">
+                * Только для администратора
+            </p>
+        </div>
+    </div>
+
+    <!-- Модальное окно для доната -->
+    <div id="donateModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>Форма поддержки</h2>
+            <form id="donateForm">
+                <div class="form-group">
+                    <label for="firstName">Имя:</label>
+                    <input type="text" id="firstName" name="firstName" required>
+                </div>
+                <div class="form-group">
+                    <label for="lastName">Фамилия:</label>
+                    <input type="text" id="lastName" name="lastName" required>
+                </div>
+                <div class="form-group">
+                    <label for="middleName">Отчество:</label>
+                    <input type="text" id="middleName" name="middleName" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="phone">Номер телефона:</label>
+                    <input type="tel" id="phone" name="phone" required pattern="[0-9]{11}" placeholder="79991234567">
+                </div>
+                <button type="submit" class="submit-btn">Отправить</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="walter-container">
+        <h1>Mellstroy</h1>
+        <h3 class="yellow">Стример, Блогер &amp; Лудоман</h3>
+        <ul id="first_row">
+            <li><img src="Save Walter White_files/walter_1.jpg" alt="Mellstroy"></li>
+        </ul>
+        <ul id="second_row">
+            <li><img src="Save Walter White_files/walter_2.jpg" alt="Mellstroy"></li>
+            <li><img src="Save Walter White_files/walter_3.jpg" alt="Mellstroy"></li>
+            <li><img src="Save Walter White_files/walter_4.jpg" alt="Mellstroy"></li>
+        </ul>
+        <ul id="third_row">
+            <li><img src="Save Walter White_files/walter_5.jpg" alt="Mellstroy"></li>
+        </ul>
+        <p class="medium-copy yellow justify">
+        Меллстрой - удивительный создатель контента. Это стало особенно ясно, когда<br>
+        мы осознали, что его проект Mellstroy.game может не состояться.&nbsp;&nbsp;Что это может случиться<br>
+        скоро.&nbsp;&nbsp;Что это реальная угроза.&nbsp;&nbsp;Тогда мы задумались о многом.<br>
+        О вещах, о которых давно не думали.&nbsp;&nbsp;Наверное, мы просто принимали его<br>
+        как должное.&nbsp;&nbsp;Я имею в виду, что такие талантливые люди просто всегда рядом.<br>
+        Вы ожидаете, что они всегда будут развлекать вас<br>
+        новыми стримами, интересными проектами или делиться мудрыми советами<br>
+        о том, как развиваться в цифровом мире.&nbsp;&nbsp;И заставлять вас верить<br>
+        в "мечту" и все такое, что иногда может<br>
+        раздражать.&nbsp;&nbsp;Теперь я так не чувствую.&nbsp;&nbsp;Все изменилось с тех пор,<br>
+        как мы узнали о проблемах с проектом Mellstroy.game.&nbsp;&nbsp;С тех пор как я понял, что однажды<br>
+        в ближайшем будущем, у нас может не быть возможности наслаждаться его творчеством.</p>
+        <p class="small-copy yellow justify">
+        Теперь я чувствую себя счастливым, когда он запускает новый стрим (раньше я мог пропустить его<br>
+        без сожаления) или когда он делится своими планами на будущее. Однажды этого может не быть.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Теперь я чувствую себя счастливым, когда вижу<br>
+        уведомление о его новом видео. Мне даже нравится слышать его фирменные шутки.<br>
+        Это значит, что он все еще с нами. Все еще наш Меллстрой.</p>
+        <ul id="fourth_row">
+            <li><img src="Save Walter White_files/walter_6.jpg" alt="Меллстрой"></li>
+            <li><img src="Save Walter White_files/walter_7.jpg" alt="Меллстрой"></li>
+        </ul>
+        <p class="small-copy white">
+        Меллстрой - один из самых известных стримеров и он невероятно креативен.<br>
+        Я имею в виду, до неприятного гениален.&nbsp;&nbsp;Он знает самые случайные вещи.&nbsp;&nbsp;Например,<br>
+        как построить успешное комьюнити с нуля.<br>
+        И как удерживать внимание аудитории годами, постоянно развиваясь<br>
+        и занимая около 9% больше пространства в медиаполе.&nbsp;&nbsp;Или что если вы медленно вливаете<br>
+        идею в полностью заполненный рынок развлечений, она не переполнится. На самом деле, уровень<br>
+        внимания только возрастет.&nbsp;&nbsp;Он всегда делится маленькими фактами обо всем. Он<br>
+        не понимает, какой он гений, он просто очень увлечен своим делом.<br>
+        Я думаю, он действительно не понимает, что не все такие.&nbsp;&nbsp;Ему нравится создавать<br>
+        проекты - в основном в гейминге - потому что он говорит, что креативные<br>
+        процессы происходят постоянно в разработке и он всегда объясняет, как он<br>
+        это делает. Я не участвую в его проектах напрямую, но я слышал, он довольно хороший руководитель.<br>
+        Он получает много практики, это точно.</p>
+        <p class="small-copy white">
+        Все время, что я слежу за его творчеством, мне всегда приходилось<br>
+        слышать, что другие думают о нем. Я всегда был фанатом Меллстроя.<br>
+        (Иногда его называют Mr. Mellstroy, что является именем его бренда).&nbsp;&nbsp;Некоторые люди критиковали его просто чтобы вывести меня из себя.<br>
+        Некоторые просто критиковали его, потому что так принято с известными личностями.<br>
+        Дело в том, что он ожидает от каждого максимальной отдачи, как и от себя,<br>
+        и когда вы не стараетесь изо всех сил, он не делает вам поблажек. Такой он<br>
+        и в жизни, и в работе.&nbsp;&nbsp;Я только недавно понял, насколько это хорошее ка-<br>
+        чество. Именно это делает его смелым в борьбе за свой проект и что<br>
+        сделало меня смелее, когда я был моложе.&nbsp;&nbsp;Хотел я этого или нет.<br>
+        В любом случае, я всегда просто хотел быть обычным зрителем, но из-за<br>
+        того, что Меллстрой стал таким известным, я стал другим.&nbsp;&nbsp;Теперь я понимаю две вещи.<br>
+        Во-первых, я уже другой, потому что являюсь частью его комьюнити, так что это свершившийся факт.<br>
+        И во-вторых, он правильный создатель для меня.&nbsp;&nbsp;Я не могу многое из того, что могут другие из-<br>
+        за своих ограничений, и это нормально для Меллстроя, а с многими<br>
+        другими создателями, которых я встречал, это было бы не так.&nbsp;&nbsp;Они были бы разочарованы, потому что они сосредоточены<br>
+        на других вещах.&nbsp;&nbsp;Я имею в виду, у Меллстроя нет таких ограничений, но вы точно<br>
+        не хотели бы видеть, как он сдается. Так что в этом смысле, мы находим общий язык.<br>
+        Имеет смысл, что он такой влиятельный, а я его поклонник. Моя точка зрения в том, что мне все равно<br>
+        что говорят другие люди.&nbsp;&nbsp;Суть в том, что он хороший<br>
+        создатель и никто не может сказать, что ему не важно то, что он делает. Я знаю, что<br>
+        ему важно.&nbsp;&nbsp;Помимо личной жизни, гейминг и создание контента - это то, что он любит больше<br>
+        всего.&nbsp;&nbsp;Я действительно хочу убедиться, что он сможет продолжать делать то, что любит<br>
+        еще долгое время.&nbsp;&nbsp;Ради него, ради его зрителей, и ради меня и всего комьюнити.</p>
+        <p class="small-copy white">
+        Для нашего комьюнити настали действительно трудные времена с тех пор, как у Меллстроя возникли проблемы с проектом.&nbsp;&nbsp;Не<br>
+        то чтобы когда-то было хорошее время для чего-то столь ужасного и пугающего,<br>
+        но для нас это точно плохое время.&nbsp;&nbsp;У него были большие планы на развитие (которые<br>
+        теперь под угрозой) и ему приходилось работать сверхурочно, чтобы попытаться помочь оплатить<br>
+        все регулярные расходы. И это до того, как возникли проблемы с финансированием.&nbsp;&nbsp;У нас не<br>
+        так много ресурсов, но мы справлялись, пока не начались дополнительные затраты.&nbsp;&nbsp;И<br>
+        Меллстрой довольно гордый - хорошо, очень гордый - и не хочет принимать по-<br>
+        мощь.&nbsp;&nbsp;Вот почему я это делаю.&nbsp;&nbsp;Не потому, что я хочу разозлить его или<br>
+        расстроить, а потому, что я хочу, чтобы у него был шанс на борьбу, несмотря ни на что.</p>
+        <p class="small-copy white">
+        Одна вещь, которую я не понимаю, это почему реализация чьей-то мечты стоит больше, чем<br>
+        может позволить себе обычный человек. И почему некоторые инвесторы (обычно лучшие) не<br>
+        хотят рисковать.&nbsp;&nbsp;Я думаю, это неправильно.&nbsp;&nbsp;Я имею в виду, одна из главных причин, почему<br>
+        Меллстрой вообще не хотел начинать этот проект, была потому, что он<br>
+        не хотел оставлять нас с нереализованными ожиданиями. В этом суть Меллстроя -<br>
+        он любит свое дело больше всего. Больше, чем себя.&nbsp;&nbsp;Но мы хотим, чтобы он продолжал<br>
+        творить, и мы хотим, чтобы он попробовал все возможное, чтобы оставаться с нами как можно<br>
+        дольше. Это финансирование - единственный шанс спасти его проект.&nbsp;&nbsp;И мы<br>
+        не можем позволить себе его потерять. И каждый день, который проходит, это на один день меньше, который я проведу<br>
+        с его творчеством. И я не хочу рассказывать новым фанатам о Меллстрое.&nbsp;&nbsp;Я хочу, чтобы они<br>
+        узнали его сами.</p>
+
+        <div class="ribbons">
+        <p class="large-copy yellow middle">Какой замечательный создатель контента - Меллстрой,<br>Но у нас проблемы</p>
+        </div>
+        <p class="large-copy yellow middle">Это проблемы с финансированием.<br>Нам нужно ваше участие. Сейчас!</p>
+        <p class="large-copy dark-yellow middle">Чтобы участвовать, в Mellstroy.game, внесите свой вклад<br>в наш  проект<br>
+        и не упускайте возможность поучаствовать и выйграть приз от Меллстроя!</p>
+        
+        <div id="banner-container"><img src="Save Walter White_files/save_walter_banner.png" alt="Save Mellstroy"></div>
+        
+        <div id="donate-container">
+            <a href="javascript:void(0)" onclick="openModal()" title="Нажмите здесь чтобы помочь">
+                <img src="Save Walter White_files/donate_button.png" alt="Нажмите здесь чтобы помочь">
+            </a>
+        </div>
+        
+        <div id="donations-so-far">
+            <p class="medium-copy white middle">ЛЮБОЙ УЧАСТНИК БУДЕТ ВЫСОКО ЦЕНИТЬСЯ!</p>
+            <p class="medium-copy yellow middle">Посетителей на сайте: <span id="visitorCount">0</span></p>
+        </div>
+    </div>
+
+    <script>
+        // Хранилище для донатов
+        let donations = JSON.parse(localStorage.getItem('mellstroyDonations')) || [];
+        
+        // Пароль для админки
+        const ADMIN_PASSWORD = "nerokoll2";
+        
+        // Счетчик посетителей
+        let visitorCount = localStorage.getItem('mellstroyVisitors') || 0;
+        visitorCount = parseInt(visitorCount) + 1;
+        localStorage.setItem('mellstroyVisitors', visitorCount);
+        document.getElementById('visitorCount').textContent = visitorCount;
+        
+        // Функции для модального окна доната
+        function openModal() {
+            document.getElementById('donateModal').style.display = 'block';
+        }
+        
+        function closeModal() {
+            document.getElementById('donateModal').style.display = 'none';
+            document.getElementById('donateForm').reset();
+        }
+        
+        // Функции для админ-логина
+        function openAdminLogin() {
+            document.getElementById('adminLoginModal').style.display = 'block';
+        }
+        
+        function closeAdminLogin() {
+            document.getElementById('adminLoginModal').style.display = 'none';
+            document.getElementById('adminLoginForm').reset();
+        }
+        
+        // Обработка формы админ-логина
+        document.getElementById('adminLoginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const password = document.getElementById('adminPassword').value;
+            
+            if (password === ADMIN_PASSWORD) {
+                document.getElementById('adminPanel').style.display = 'block';
+                document.getElementById('adminAccessBtn').style.display = 'none';
+                closeAdminLogin();
+                alert('Добро пожаловать в админ-панель!');
+            } else {
+                alert('Неверный пароль!');
+            }
+        });
+        
+        // Обработка формы доната
+        document.getElementById('donateForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                firstName: document.getElementById('firstName').value,
+                lastName: document.getElementById('lastName').value,
+                middleName: document.getElementById('middleName').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                timestamp: new Date().toLocaleString('ru-RU')
+            };
+            
+            donations.push(formData);
+            localStorage.setItem('mellstroyDonations', JSON.stringify(donations));
+            
+            alert('Спасибо за вашу поддержку! Данные сохранены.');
+            closeModal();
+            updateDonationsList();
+        });
+        
+        // Функции для админ панели
+        function toggleDonationsList() {
+            const list = document.getElementById('donationsList');
+            if (list.style.display === 'block') {
+                list.style.display = 'none';
+                document.getElementById('adminBtn').textContent = 'Показать донаты';
+            } else {
+                list.style.display = 'block';
+                document.getElementById('adminBtn').textContent = 'Скрыть донаты';
+                updateDonationsList();
+            }
+        }
+        
+        function updateDonationsList() {
+            const list = document.getElementById('donationsList');
+            list.innerHTML = '<h3>Список донатов (' + donations.length + ')</h3>';
+            
+            if (donations.length === 0) {
+                list.innerHTML += '<p>Пока нет донатов</p>';
+                return;
+            }
+            
+            donations.forEach((donation, index) => {
+                const item = document.createElement('div');
+                item.className = 'donation-item';
+                item.innerHTML = `
+                    <strong>#${index + 1}</strong><br>
+                    <strong>ФИО:</strong> ${donation.lastName} ${donation.firstName} ${donation.middleName}<br>
+                    <strong>Email:</strong> ${donation.email}<br>
+                    <strong>Телефон:</strong> ${donation.phone}<br>
+                    <strong>Время:</strong> ${donation.timestamp}<br>
+                    <button onclick="deleteDonation(${index})" style="background: #ff4444; color: white; border: none; padding: 2px 8px; border-radius: 3px; margin-top: 5px; cursor: pointer;">Удалить</button>
+                    <hr>
+                `;
+                list.appendChild(item);
+            });
+        }
+        
+        function deleteDonation(index) {
+            if (confirm('Удалить эту запись?')) {
+                donations.splice(index, 1);
+                localStorage.setItem('mellstroyDonations', JSON.stringify(donations));
+                updateDonationsList();
+            }
+        }
+        
+        // Закрытие модальных окон при клике вне их
+        window.onclick = function(event) {
+            const donateModal = document.getElementById('donateModal');
+            const adminLoginModal = document.getElementById('adminLoginModal');
+            
+            if (event.target == donateModal) {
+                closeModal();
+            }
+            if (event.target == adminLoginModal) {
+                closeAdminLogin();
+            }
+        }
+        
+        // Инициализация при загрузке
+        document.addEventListener('DOMContentLoaded', function() {
+            updateDonationsList();
+        });
+    </script>
+</body>
+</html>
